@@ -1,0 +1,21 @@
+import csv
+
+
+# Step 1: Read the file into python and print the number of lines
+with open("data11Oct21.csv", "r") as file:
+    lines = file.readlines()
+print(f"The file has {len(lines)} lines ")
+
+# Step 2: Write a function that prints out all the column headers in alphabetical order
+header_line = lines[2].strip()
+headers = header_line.split(",")
+abc_header = sorted(headers)
+print(abc_header)
+
+# Step 3: Write another two functions that take a column header as an argument. One min and one max of the column
+column_name = "Exhaust Press(Torr)"
+index = header_line.index(column_name)
+#print(index) #used this to find which column number im pulling from
+
+
+
