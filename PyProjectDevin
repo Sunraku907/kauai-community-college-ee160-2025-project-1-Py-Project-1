@@ -1,62 +1,78 @@
 import csv
 import matplotlib.pyplot as plt
-import numpy as np
 
 # Step 1: Read the file and print number of lines
 with open("data11Oct21.csv", "r") as file:
     lines = file.readlines()
 print(f"This file has {len(lines)} lines")
 
-# Step 2: Get headers from line 3 (index 2) and sort them
+# Step 2: Grab and alphabetize headers from line 3
 with open("data11Oct21.csv", "r") as file:
     header_line = lines[2].strip()
     headers = header_line.split(",")
     sorted_headers = sorted(headers)
 print(f"Headers in alphabetical order: {sorted_headers}")
 
-# Step 3: Extract all values for the given column
+# Step 3: Find max/min of one column
 column_name = "Exhaust Press(Torr)"
 column_values = []
 
 with open("data11Oct21.csv", "r") as file:
-    for _ in range(2):
+    for _ in range(2):  # skip the junk
         next(file)
-
     reader = csv.DictReader(file)
-
     for row in reader:
         value = row.get(column_name)
-
         if value:
             column_values.append(value)
 
-print(f"The maximum value in {column_name} is: {max(column_values)}")
-print(f"The minimum value in {column_name} is: {min(column_values)}")
-
-# Step 5: Use pyplot to plot temperature vs time.
-with open("data11Oct21.csv", "r") as file:
-    time_col = "Run-Time(min)"
-    temp_col = "Chamber TC1(C)"
-
-    time_values = []
-    temp_values = []
-
-with open("data11Oct21.csv", "r") as file:
+# Step 4: Write another two functions that take a column header as an argument, one gives max and the other min
+# Function to get all values from a given column
+def get_column_values(column_name):
+    values = []
+    with open("data11Oct21.csv", "r") as file:
         for _ in range(2):
             next(file)
-
         reader = csv.DictReader(file)
-
         for row in reader:
-            t = row.get(time_col)
-            temp = row.get(temp_col)
-
-            if t and temp:
+            val = row.get(column_name)
+            if val:
                 try:
-                    time_values.append(float(t))
-                    temp_values.append(float(temp))
+                    values.append(float(val))
                 except ValueError:
                     continue
+    return values
+
+# Function to get the maximum value from a given column
+def max_value(column_name):
+    return max(get_column_values(column_name))
+
+# Function to get the minimum value from a given column
+def min_value(column_name):
+    return min(get_column_values(column_name))
+
+print(f"The maximum value of {column_name} is {max_value(column_name)} and the minimum value is {min_value(column_name)}")
+
+# Step 5: Plot TC1 vs time
+time_col = "Run-Time(min)"
+temp_col = "Chamber TC1(C)"
+time_values = []
+temp_values = []
+
+with open("data11Oct21.csv", "r") as file:
+    for _ in range(2):
+        next(file)
+    reader = csv.DictReader(file)
+    for row in reader:
+        t = row.get(time_col)
+        temp = row.get(temp_col)
+        if t and temp:
+            try:
+                time_values.append(float(t))
+                temp_values.append(float(temp))
+            except ValueError:
+                continue
+
 plt.plot(time_values, temp_values, c='cyan')
 plt.xlabel("Run-Time (min)")
 plt.ylabel("Chamber TC1 (°C)")
@@ -65,39 +81,100 @@ plt.grid(True)
 plt.tight_layout()
 plt.show()
 
-# Step 6: Plot TC2 vs Time
+# Step 6: Plot TC2 vs time
+temp2_col = "Chamber TC2(C)"
+time2_values = []
+temp2_values = []
+
 with open("data11Oct21.csv", "r") as file:
-    time_col = "Run-Time(min)"
-    temp2_col = "Chamber TC2(°C)"
+    for _ in range(2):
+        next(file)
+    reader = csv.DictReader(file)
+    for row in reader:
+        t2 = row.get(time_col)
+        temp2 = row.get(temp2_col)
+        if t2 and temp2:
+            try:
+                time2_values.append(float(t2))
+                temp2_values.append(float(temp2))
+            except ValueError:
+                continue
 
-    time_values = []
-    temp2_values = []
-
-    with open("data11Oct21.csv", "r") as file:
-        for _ in range(2):
-            next(file)
-
-        reader = csv.DictReader(file)
-
-        for row in reader:
-            t = row.get(time_col)
-            temp2 = row.get(temp2_col)
-
-            if t and temp2:
-                try:
-                    time_values.append(float(t))
-                    temp2_values.append(float(temp2))
-                except ValueError:
-                    continue
-plt.plot(time_values, temp2_values, c='red')
+plt.plot(time2_values, temp2_values, c='orange')
 plt.xlabel("Run-Time (min)")
-plt.ylabel("Chamber TC2(C)")
-plt.title("Chamber Temperature 2 vs Run-Time")
+plt.ylabel("Chamber TC2 (°C)")
+plt.title("Chamber Temperature vs Run-Time")
 plt.grid(True)
 plt.tight_layout()
 plt.show()
 
+# Step 7: Normalized TC1 vs time
+max_temp = max(temp_values)
+normalized_temp = [t / max_temp for t in temp_values]
 
+plt.plot(time_values, normalized_temp, c='green')
+plt.xlabel("Run-Time (min)")
+plt.ylabel("Normalized Temperature (0 to 1)")
+plt.title("Normalized Chamber TC1 Temperature vs Time")
+plt.grid(True)
+plt.tight_layout()
+plt.show()
 
+# Step 8: Correlation plot of TC1 vs TC2
+max_temp1 = max(temp_values)
+max_temp2 = max(temp2_values)
 
+normalized_temp1 = [t / max_temp1 for t in temp_values]
+normalized_temp2 = [t / max_temp2 for t in temp2_values]
 
+plt.scatter(normalized_temp1, normalized_temp2, alpha=0.6, edgecolors='black')
+plt.xlabel("Normalized TC1")
+plt.ylabel("Normalized TC2")
+plt.title("Correlation Plot: Normalized TC1 vs TC2")
+plt.grid(True)
+plt.tight_layout()
+plt.show()
+print("Normalized TC1 vs TC2 scatter plot shows up as a diagonal line showing strong correlation between the two data sets")
+
+# Step 9: TC1 - TC2 difference vs time
+min_length = min(len(time_values), len(temp_values), len(temp2_values))
+temp_differences = [
+    abs(temp_values[i] - temp2_values[i])
+    for i in range(min_length)
+]
+time_trimmed = time_values[:min_length]
+
+plt.plot(time_trimmed, temp_differences, c='purple')
+plt.xlabel("Run-Time (min)")
+plt.ylabel("Temperature Difference (°C)")
+plt.title("Difference Between TC1 and TC2 vs Time")
+plt.grid(True)
+plt.tight_layout()
+plt.show()
+
+# Step 10: Correlation plot for step behavior — heater vs TC1
+x_col = "Chamber Heater(%)"
+y_col = "Chamber TC1(C)"
+x_values = []
+y_values = []
+
+with open("data11Oct21.csv", "r") as file:
+    for _ in range(2):  # skip junk
+        next(file)
+    reader = csv.DictReader(file)
+    for row in reader:
+        x_values.append(float(row[x_col]))
+        y_values.append(float(row[y_col]))
+
+x_norm = [x / max(x_values) for x in x_values]
+y_norm = [y / max(y_values) for y in y_values]
+
+plt.scatter(x_norm, y_norm, alpha=0.6, edgecolors='black')
+plt.xlabel("Normalized Chamber Heater (%)")
+plt.ylabel("Normalized Chamber TC1 (°C)")
+plt.title("Correlation Plot: Heater vs Chamber Temp (Step Behavior)")
+plt.grid(True)
+plt.tight_layout()
+plt.show()
+
+print("I picked this one because it kind of gives off a vibe, like an escalator to heaven. Like the heater doesn’t do much until it suddenly kicks in and shoots the temp up.")
